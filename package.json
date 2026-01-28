@@ -4,7 +4,6 @@
   "type": "module",
   "description": "",
   "main": "index.js",
-
   "dependencies": {
     "axios": "^1.13.3",
     "cloudinary": "^2.9.0",
@@ -20,5 +19,5 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^2.2.1",
     "uuid": "^13.0.0"
-}
+  }
 }

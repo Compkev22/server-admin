@@ -49,5 +49,9 @@ const fieldSchema = new mongoose.Schema({
     }
 });
 
+fieldSchema.index({ isActive: 1});
+fieldSchema.index({ fieldName: 1 });
+fieldSchema.index({ isActive: 1, fieldName: 1});
+
 //exportamos el modelo con el nombre Field
 export default mongoose.model('Field', fieldSchema);
