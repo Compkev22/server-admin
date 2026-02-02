@@ -2,6 +2,7 @@
 //importaciones 
 import dotenv from 'dotenv';
 import { initServer } from './configs/app.js';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 //Configuracion de variables de entorno
 dotenv.config();

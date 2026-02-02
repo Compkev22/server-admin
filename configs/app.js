@@ -5,10 +5,11 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { corsOptions } from './cors-configuration.js'; // Agregué el .js, es buena práctica en módulos
+import { dbConnection} from './db.js';
 
 //Rutas 
 import fieldRoutes from '../src/fields/field.routes.js';
-
+import teamRoutes from '../src/teams/team.routes.js'
 const BASE_URL = '/kinalSportAdmin/v1';
 
 // Configuraciones de los middlewares
@@ -27,7 +28,8 @@ const middleware = (app) => {
 
 //Integracion de todas las rutas
 const routes = (app) => {
-    app.use(`${BASE_URL}/fields`, fieldRoutes)
+    app.use(`${BASE_URL}/fields`, fieldRoutes);
+    app.use(`${BASE_URL}/teams`, teamRoutes);
 }
 
 //Función para iniciar el servidor
@@ -37,27 +39,27 @@ const initServer = async () => {
     const PORT = process.env.PORT || 3001;
 
     try {
-        //Configuraciones de los middlewares (Mi aplicación)
-        // CORRECCIÓN 2: Corregí 'middlewares' a 'middleware' (singular) para que coincida con la función de arriba
+        // 1. Conectar a DB (Usa await para esperar la conexión)
+        await dbConnection(); 
+        
+        // 2. Configurar Middlewares
         middleware(app); 
+        
+        // 3. Configurar Rutas (Incluyendo el health check)
         routes(app);
 
-        app.listen(PORT, () => {
-            console.log(`Servidor corriendo en el puerto ${PORT}`);
-            console.log(`Base URL: http://localhost:${PORT}${BASE_URL}`);
+        // Mueve el app.get del health check AQUÍ (antes del listen)
+        app.get(`${BASE_URL}/health`, (req, res) => {
+            res.status(200).json({ status: 'ok', service: 'KinalSport Admin' });
         });
 
-        //Primera ruta
-        app.get(`${BASE_URL}/health`, (req, res) => {
-            res.status(200).json({
-                status: 'ok',
-                service: 'KinalSport Admin',
-                version: '1.0.0'
-            });
+        // 4. Iniciar escucha
+        app.listen(PORT, () => {
+            console.log(`Servidor corriendo en el puerto ${PORT}`);
         });
 
     } catch (error) {
-        console.log(error);
+        console.error('Error al iniciar el servidor:', error);
     }
 }
 
