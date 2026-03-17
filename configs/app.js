@@ -4,8 +4,11 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import helmet from 'helmet';
 import { corsOptions } from './cors-configuration.js'; // Agregué el .js, es buena práctica en módulos
 import { dbConnection} from './db.js';
+import { errorHandler } from '../middlewares/handle-errors.js';
+import { helmetConfiguration } from './helmet-configuration.js';
 
 //Rutas 
 import fieldRoutes from '../src/fields/field.routes.js';
@@ -16,6 +19,8 @@ const BASE_URL = '/kinalSportAdmin/v1';
 /* Se almacena una función para que pueda ser exportada
 o usada al crear la instancia de la aplicacion */
 const middleware = (app) => {
+    
+    app.use(helmet(helmetConfiguration));
     //Limitamos el acceso y el tamaño de las consultas
     app.use(express.urlencoded({ extended: false, limit: '10mb' }));
     //Las consultas Json tendrán un tamaño máximo de 10mb
@@ -47,6 +52,8 @@ const initServer = async () => {
         
         // 3. Configurar Rutas (Incluyendo el health check)
         routes(app);
+
+        app.use(errorHandler); // Middleware de manejo de errores (debe ir después de las rutas para capturar errores)
 
         // Mueve el app.get del health check AQUÍ (antes del listen)
         app.get(`${BASE_URL}/health`, (req, res) => {

@@ -1,24 +1,39 @@
-import { Schema, model } from 'mongoose';
+'use strict';
+import mongoose from 'mongoose';
 
-const teamSchema = Schema({
-    name: {
-        type: String,
-        required: [true, 'El nombre del equipo es requerido'],
-        unique: true
+const teamSchema = new mongoose.Schema(
+  {
+    teamName: {
+      type: String,
+      required: [true, 'El nombre del equipo es requerido'],
+      trim: true,
+    },
+    managerId: {
+      type: String,
+      required: [true, 'El ID del manager es requerido'],
+      trim: true,
     },
     category: {
-        type: String,
-        required: [true, 'La categoría es requerida']
+      type: String,
+      enum: ['FUTBOL_7', 'FUTBOL_11'],
+      required: [true, 'La categoría del equipo es requerida'],
     },
     logo: {
-        type: String
+      type: String,
+      default: 'fields/kinal_sports_nyvxo5',
     },
     isActive: {
-        type: Boolean,
-        default: true
-    }
-}, {
-    timestamps: true
-});
+      type: Boolean,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 
-export default model('Team', teamSchema);
+// Índice para optimizar búsquedas
+teamSchema.index({ isActive: 1 });
+
+export default mongoose.model('Team', teamSchema);

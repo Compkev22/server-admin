@@ -1,9 +1,17 @@
 import multer from 'multer';
 import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
+
+// --- AJUSTE FINAL ---
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const CloudinaryPkg = require('multer-storage-cloudinary');
+
+// Aquí está el secreto: a veces viene directo, a veces dentro de .CloudinaryStorage
+const CloudinaryStorage = CloudinaryPkg.CloudinaryStorage || CloudinaryPkg;
+// --------------------
  
 dotenv.config();
  

@@ -1,23 +1,31 @@
 import { Router } from 'express';
 import {
-    getReservations,
-    getReservationById,
-    createReservation,
-    confirmReservation
+  getReservations,
+  getReservationById,
+  confirmReservation,
+  cancelReservation,
 } from './reservation.controller.js';
 import {
-    validateCreateReservation,
-    validateGetReservationById
+  validateGetReservations,
+  validateGetReservationById,
+  validateConfirmReservationRequest,
+  validateCancelReservationRequest,
 } from '../../middlewares/reservation-validators.js';
+import { checkReservationConflict } from '../../middlewares/reservation-conflict.js';
 
 const router = Router();
 
-router.get('/', getReservations);
+// Rutas GET
+router.get('/', validateGetReservations, getReservations);
 router.get('/:id', validateGetReservationById, getReservationById);
 
-router.post('/', validateCreateReservation, createReservation);
+router.put(
+  '/:id/confirm',
+  validateConfirmReservationRequest,
+  checkReservationConflict,
+  confirmReservation
+);
 
-// Endpoint específico de confirmación según tu tabla
-router.put('/:id/confirm', validateGetReservationById, confirmReservation);
+router.put('/:id/cancel', validateCancelReservationRequest, cancelReservation);
 
 export default router;
