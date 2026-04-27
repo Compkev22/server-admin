@@ -1,72 +1,81 @@
 'use strict';
 
-//Importaciones
+// Importaciones
 import express from 'express';
 import cors from 'cors';
-import morgan from 'morgan';
 import helmet from 'helmet';
-import { corsOptions } from './cors-configuration.js'; // Agregué el .js, es buena práctica en módulos
-import { dbConnection} from './db.js';
-import { errorHandler } from '../middlewares/handle-errors.js';
+import morgan from 'morgan';
+import { dbConnection } from './db.js';
+import { requestLimit } from '../middlewares/request-limit.js';
+import { corsOptions } from './cors-configuration.js';
 import { helmetConfiguration } from './helmet-configuration.js';
+import { errorHandler } from '../middlewares/handle-errors.js';
 
-//Rutas 
+// Rutas
 import fieldRoutes from '../src/fields/field.routes.js';
-import teamRoutes from '../src/teams/team.routes.js'
-const BASE_URL = '/kinalSportAdmin/v1';
+import reservationRoutes from '../src/reservations/reservation.routes.js';
+import teamRoutes from '../src/teams/team.routes.js';
+import tournamentRoutes from '../src/tournaments/tournaments.routes.js';
 
-// Configuraciones de los middlewares
-/* Se almacena una función para que pueda ser exportada
-o usada al crear la instancia de la aplicacion */
-const middleware = (app) => {
-    
-    app.use(helmet(helmetConfiguration));
-    //Limitamos el acceso y el tamaño de las consultas
+const BASE_PATH = '/kinalSportsAdmin/v1';
+
+// Configuraicón de mi aplicación
+const middlewares = (app) => {
     app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-    //Las consultas Json tendrán un tamaño máximo de 10mb
     app.use(express.json({ limit: '10mb' }));
-    //Importamos los métodos creados anteriormente
     app.use(cors(corsOptions));
-    //Morgan nos ayudará a detectar errores del lado del usuario
+    app.use(helmet(helmetConfiguration));
+    app.use(requestLimit);
     app.use(morgan('dev'));
 }
 
-//Integracion de todas las rutas
+// Integración de todas las rutas
 const routes = (app) => {
-    app.use(`${BASE_URL}/fields`, fieldRoutes);
-    app.use(`${BASE_URL}/teams`, teamRoutes);
+    app.use(`${BASE_PATH}/fields`, fieldRoutes);
+    app.use(`${BASE_PATH}/reservations`, reservationRoutes);
+    app.use(`${BASE_PATH}/teams`, teamRoutes);
+    app.use(`${BASE_PATH}/tournaments`, tournamentRoutes);
+
+    app.get(`${BASE_PATH}/health`, (req, res) => {
+        res.status(200).json({
+            status: 'Healthy',
+            timestamp: new Date().toISOString(),
+            service: 'KinalSports Admin Server',
+        });
+    });
+
+    // 404 handler
+    app.use((req, res) => {
+        res.status(404).json({
+            success: false,
+            message: 'Endpoint no encontrado en Admin API',
+        });
+    });
 }
 
-//Función para iniciar el servidor
-// CORRECCIÓN 1: Quitamos 'app' de los paréntesis porque la creamos adentro
-const initServer = async () => { 
-    const app = express();
+
+// Función para iniciar el servidor
+const initServer = async (app) => {
+    // Cración de la instancia de la aplicación
+    app = express();
     const PORT = process.env.PORT || 3001;
+    app.set('trust proxy', 1);
 
     try {
-        // 1. Conectar a DB (Usa await para esperar la conexión)
-        await dbConnection(); 
-        
-        // 2. Configurar Middlewares
-        middleware(app); 
-        
-        // 3. Configurar Rutas (Incluyendo el health check)
+        // Configuración de los middlewares (Mi aplicación)
+        await dbConnection();
+        middlewares(app);
         routes(app);
+        app.use(errorHandler);
 
-        app.use(errorHandler); // Middleware de manejo de errores (debe ir después de las rutas para capturar errores)
-
-        // Mueve el app.get del health check AQUÍ (antes del listen)
-        app.get(`${BASE_URL}/health`, (req, res) => {
-            res.status(200).json({ status: 'ok', service: 'KinalSport Admin' });
-        });
-
-        // 4. Iniciar escucha
         app.listen(PORT, () => {
             console.log(`Servidor corriendo en el puerto ${PORT}`);
+            console.log(`Base URL: http://localhost:${PORT}${BASE_PATH}`);
         });
 
     } catch (error) {
-        console.error('Error al iniciar el servidor:', error);
+        console.error(`Error starting Admin Server: ${err.message}`);
+        process.exit(1)
     }
 }
 

@@ -1,12 +1,12 @@
 const corsOptions = {
-    //Permite que cualquier origen pueda acceder a la API
-    origin: true,
-    //Permite que la API envie y reciba cookies
-    credential: true,
-    //Especifica los metodos HTTP permitidos
+    // Permite que cualquier origen acceda a la API
+    orgin: true,
+    // Permite que la API acceda a la API
+    credentials: true,
+    // Establece los métodos permitidos en la API
     methods: "GET,POST,PUT,DELETE",
-    //Especifica los encabezados permitidos
-    allowedHeaders: "Content-Type,Authorization",
-};
-//Exporta la configuracion de CORS para ser utilizada en otros archivos
-export {corsOptions};
+    // Define los headers que el cliente puede enviar
+    allowedHeaders: "Content-Type,Authorization"
+}
+
+export { corsOptions }

@@ -14,7 +14,7 @@ import {
   validateGetTeamById,
   authorizeUpdateTeam,
   validateChangeTeamManager,
-} from '../../middlewares/Team-validators.js';
+} from '../../middlewares/team-validators.js';
 import { uploadTeamImage } from '../../middlewares/file-uploader.js';
 import { cleanupUploadedFileOnFinish } from '../../middlewares/delete-file-on-error.js';
 

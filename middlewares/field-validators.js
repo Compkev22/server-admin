@@ -1,6 +1,6 @@
 import { body, param } from 'express-validator';
 import { checkValidators } from './check-validators.js';
- 
+
 // Validaciones para crear campos (field)
 export const validateCreateField = [
     body('fieldName')
@@ -31,7 +31,7 @@ export const validateCreateField = [
         .withMessage('La descripción no puede exceder 500 caracteres'),
     checkValidators,
 ];
- 
+
 export const validateUpdateFieldRequest = [
     param('id')
         .isMongoId()
@@ -60,7 +60,7 @@ export const validateUpdateFieldRequest = [
         .withMessage('La descripción no puede exceder 500 caracteres'),
     checkValidators,
 ];
- 
+
 // Validaciones para activar/desactivar campos
 export const validateFieldStatusChange = [
     param('id')
@@ -68,7 +68,7 @@ export const validateFieldStatusChange = [
         .withMessage('ID debe ser un ObjectId válido de MongoDB'),
     checkValidators,
 ];
- 
+
 // Validación para obtener campo por ID
 export const validateGetFieldById = [
     param('id')

@@ -194,3 +194,5 @@ export const changeFieldStatus = async (req, res) => {
         });
     }
 };
+
+// Eliminar campo permanentemente
