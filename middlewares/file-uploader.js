@@ -1,103 +1,54 @@
-// import multer from 'multer';
-// import dotenv from 'dotenv';
-// import { v2 as cloudinary } from 'cloudinary';
-// import { v4 as uuidv4 } from 'uuid';
-// import { extname } from 'path';
-
-// import { createRequire } from 'module';
-// const require = createRequire(import.meta.url);
-// const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
-// dotenv.config();
-
-
-// // Configuración de Cloudinary
-// cloudinary.config({
-//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//     api_key: process.env.CLOUDINARY_API_KEY,
-//     api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
-
-// const MIMETYPES = [
-//     'image/jpeg',
-//     'image/png',
-//     'image/jpg',
-//     'image/webp',
-//     'image/avif',
-// ];
-// const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-// const createCloudinaryUploader = (folder) => {
-//     const storage = new CloudinaryStorage({
-//         cloudinary: cloudinary,
-//         params: (req, file) => {
-//             // Obtener nombre base sin extensión y sanitizarlo
-//             const fileExt = extname(file.originalname);
-//             const baseName = file.originalname.replace(fileExt, '');
-//             const safeBase = baseName
-//                 .toLowerCase()
-//                 .replace(/[^a-z0-9]+/gi, '-')
-//                 .replace(/^-+|-+$/g, '');
-
-//             // UUID corto para evitar colisiones
-//             const shortUuid = uuidv4().substring(0, 8);
-//             const publicId = `${safeBase}-${shortUuid}`;
-
-//             return {
-//                 folder: folder,
-//                 public_id: publicId, // no incluir extensión; Cloudinary la calcula
-//                 allowed_formats: ['jpeg', 'jpg', 'png', 'webp', 'avif'],
-//                 transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
-//                 resource_type: 'image',
-//             };
-//         },
-//     });
-
-//     return multer({
-//         storage: storage,
-//         fileFilter: (req, file, cb) => {
-//             if (MIMETYPES.includes(file.mimetype)) {
-//                 cb(null, true);
-//             } else {
-//                 cb(new Error(`Solo se permiten imágenes: ${MIMETYPES.join(', ')}`));
-//             }
-//         },
-//         limits: {
-//             fileSize: MAX_FILE_SIZE,
-//         },
-//     });
-// };
-
-// // Uploader para imágenes de campos deportivos
-// export const uploadFieldImage = createCloudinaryUploader(
-//     process.env.CLOUDINARY_FOLDER || 'kinal_sports/fields'
-// );
-
-// // Uploader para imágenes de Equipos deportivos
-// export const uploadTeamImage = createCloudinaryUploader(
-//     process.env.CLOUDINARY_TEAMS_FOLDER || 'kinal_sports/teams'
-// );
-
-// // Export cloudinary instance para usar en delete-file-on-error
-// export { cloudinary };
-
 import multer from 'multer';
 import dotenv from 'dotenv';
-// Comenta estas líneas que dan problema:
-// import { v2 as cloudinary } from 'cloudinary';
-// import { createRequire } from 'module';
-// const require = createRequire(import.meta.url);
-// const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { v4 as uuidv4 } from 'uuid';
+import { extname } from 'path';
+ 
 dotenv.config();
-
-const MIMETYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; 
-
+ 
+// Configuración de Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+ 
+const MIMETYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'image/webp',
+    'image/avif',
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+ 
 const createCloudinaryUploader = (folder) => {
-    // EN LUGAR DE CLOUDINARY, USAREMOS MEMORIA TEMPORAL
-    const storage = multer.memoryStorage(); 
-
+    const storage = new CloudinaryStorage({
+        cloudinary: cloudinary,
+        params: (req, file) => {
+            // Obtener nombre base sin extensión y sanitizarlo
+            const fileExt = extname(file.originalname);
+            const baseName = file.originalname.replace(fileExt, '');
+            const safeBase = baseName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/gi, '-')
+                .replace(/^-+|-+$/g, '');
+ 
+            // UUID corto para evitar colisiones
+            const shortUuid = uuidv4().substring(0, 8);
+            const publicId = `${safeBase}-${shortUuid}`;
+ 
+            return {
+                folder: folder,
+                public_id: publicId, // no incluir extensión; Cloudinary la calcula
+                allowed_formats: ['jpeg', 'jpg', 'png', 'webp', 'avif'],
+                transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
+                resource_type: 'image',
+            };
+        },
+    });
+ 
     return multer({
         storage: storage,
         fileFilter: (req, file, cb) => {
@@ -107,13 +58,21 @@ const createCloudinaryUploader = (folder) => {
                 cb(new Error(`Solo se permiten imágenes: ${MIMETYPES.join(', ')}`));
             }
         },
-        limits: { fileSize: MAX_FILE_SIZE },
+        limits: {
+            fileSize: MAX_FILE_SIZE,
+        },
     });
 };
-
-// Estos se quedan igual para no romper los archivos donde los importas
-export const uploadFieldImage = createCloudinaryUploader('fields');
-export const uploadTeamImage = createCloudinaryUploader('teams');
-
-// Export dummy cloudinary para evitar errores de importación en otros archivos
-export const cloudinary = {};
+ 
+// Uploader para imágenes de campos deportivos
+export const uploadFieldImage = createCloudinaryUploader(
+    process.env.CLOUDINARY_FOLDER || 'kinal_sports/fields'
+);
+ 
+// Uploader para imágenes de Equipos deportivos
+export const uploadTeamImage = createCloudinaryUploader(
+    process.env.CLOUDINARY_TEAMS_FOLDER || 'kinal_sports/teams'
+);
+ 
+// Export cloudinary instance para usar en delete-file-on-error
+export { cloudinary };
